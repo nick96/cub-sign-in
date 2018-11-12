@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  cub_sign_in_app:
+    restart: always
+    build: ./app
+    ports:
+      - "8000:8000"
+    command: gunicorn -w 1 -b :8000 app:app
+
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - cub_sign_in_app

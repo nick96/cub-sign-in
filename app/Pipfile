@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+black = "*"
+gunicorn = "*"
+flask-testing = "*"
+flask-security = "*"
+
+[dev-packages]
+black = "*"
+pyls-black = "*"
+pyls-mypy = "*"
+pyls-isort = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
