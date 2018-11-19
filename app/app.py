@@ -24,11 +24,15 @@ from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, TokenExpiredErr
 
 logging.basicConfig(level=logging.DEBUG)
 
-app = Flask(__name__)
 
-app.config.from_envvar("CUB_SIGN_IN_CONFIG")
+def create_app():
+    app = Flask(__name__)
+    app.config.from_envvar("CUB_SIGN_IN_CONFIG")
+    return app
+
+
+app = create_app()
 celery = make_celery(app, app.config["CELERY_BROKER_URL"])
-celery.config_from_object(app.config)
 
 google_bp = make_google_blueprint(
     client_id=app.config["GOOGLE_CLIENT_ID"],
@@ -37,7 +41,6 @@ google_bp = make_google_blueprint(
     offline=True,
 )
 app.register_blueprint(google_bp, url_prefix="/login")
-
 
 def google_auth_required(handler):
     @wraps(handler)
