@@ -53,9 +53,9 @@ services:
     build: ./nginx
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - cub_sign_in_app
 
-
 volumes:
-  datavolume: {}
+  datavolume:
