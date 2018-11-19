@@ -1,4 +1,3 @@
-import os
 from collections import namedtuple
 from typing import List
 
@@ -8,10 +7,11 @@ from uritemplate import URITemplate
 
 from celery import Celery, shared_task, states
 from celery.exceptions import Ignore
+from celery.schedules import crontab
+from celery.signals import celeryd_after_setup
 from celery.utils.log import get_task_logger
-from requests_oauthlib import OAuth2Session
 from typing_extensions import Final
-import json
+from time import sleep
 
 logger = get_task_logger(__name__)
 
@@ -42,6 +42,26 @@ def make_celery(app, broker):
                 return self.run(self, *args, **kwargs)
 
     celery.Task = ContextTask
+
+    @celeryd_after_setup.connect
+    def setup_name_autocomplete(sender, instance, **kwargs):
+        # Run the tasks now so we have some autocomplete
+        update_name_autocomplete.delay(
+            instance.app.conf["NAMES_FILE"],
+            instance.app.conf["SPREADSHEET_ID"],
+            [instance.app.conf["ROLL_SHEET"], instance.app.conf["NAMES_SHEET"]],
+        )
+
+        # Set up the autocomplete task to run every Monday at 12am.
+        sender.add_periodic_task(
+            crontab(hour=0, minute=0, day_of_week=1),
+            update_name_autocomplete.s(
+                instance.app.conf["NAMES_FILE"],
+                instance.app.conf["SPREADSHEET_ID"],
+                [instance.app.conf["ROLL_SHEET", instance.app.conf["NAMES_SHEET"]]],
+            ),
+        )
+
     return celery
 
 
@@ -57,13 +77,32 @@ def make_sheets_client(service_creds_file):
 
 @shared_task
 def update_name_autocomplete(
-    self, name_file: str, spreadsheet_id: str, sheet_names: List[str]
+    self, names_file: str = "", spreadsheet_id: str = "", sheet_names: List[str] = []
 ) -> None:
     """Update the `name_file` with the names pull from `sheet_names` in
     `spreadsheet_id`. This allows us to have autocomplate for cub names."""
-    logger.debugger(
-        f"Update name autocomplete task received with arguments: {locals()}"
-    )
+    sheets = make_sheets_client(self._get_app().conf["SERVICE_ACCOUNT_CREDS"])
+    names = []
+    for sheet_name in sheet_names:
+        result = (
+            sheets.values()
+            .get(spreadsheetId=spreadsheet_id, range=f"{sheet_name}!A2:A")
+            .execute()
+        )
+        for name in result["values"]:
+            names.append(name[0])
+    logger.debug(f"Found {len(names)} for autocomplete: {names}")
+
+    retry = 0
+    while retry <= 10:
+        try:
+            with open(names_file, "w") as f:
+                f.write('\n'.join(names))
+            break
+        except PermissionError:
+            retry += 1
+            logger.debug(f"Permissions error accessing file, retry {retry}")
+            sleep(5)
 
 
 @shared_task
@@ -155,18 +194,23 @@ def add_sign_out(
         if not append.ok:
             self.update_state(state=states.FAILURE, meta=append.message)
             raise Ignore()
+        return
 
     logger.info(f"Found corresponding sign in record, updating row {updated_row}")
-    result = sheets.values().update(
-        spreadsheetId=spreadsheet_id,
-        valueInputOption="RAW",
-        range=f"{sheet_name}!A{updated_row_index + 1}",
-        body={
-            "range": f"{sheet_name}!A{updated_row_index + 1}",
-            "majorDimension": "ROWS",
-            "values": [updated_row],
-        },
-    ).execute()
+    result = (
+        sheets.values()
+        .update(
+            spreadsheetId=spreadsheet_id,
+            valueInputOption="RAW",
+            range=f"{sheet_name}!A{updated_row_index + 1}",
+            body={
+                "range": f"{sheet_name}!A{updated_row_index + 1}",
+                "majorDimension": "ROWS",
+                "values": [updated_row],
+            },
+        )
+        .execute()
+    )
     logger.debug(f"Update result: {result}")
     logger.debug(f"Updated record with sign out date: {updated_row}")
 
@@ -184,7 +228,5 @@ def append_row(sheets, spreadsheet_id: str, sheet_name: str, row: List[str]) -> 
         )
         .execute()
     )
-    logger.debug(
-        "append result: {'\n'.join([(a,getattr(result, a)) for a in dir(result)])}"
-    )
+    logger.debug(f"Append result: {result}")
     return AppendResult(ok=True, message="Successfully appended row")

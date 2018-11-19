@@ -1,5 +1,5 @@
 Users
-.env
-.env-test
+*.env
 app/Pipfile.lock
 .venv
+__pycache__

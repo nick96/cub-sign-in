@@ -20,6 +20,8 @@ services:
     links:
       - redis
       - celery
+    volumes:
+      - datavolume:/data
 
   redis:
     restart: always
@@ -31,7 +33,7 @@ services:
   celery:
     restart: always
     build: ./app
-    user: nobody
+    # user: nobody
     command: >
       celery worker
           --loglevel=WARN
@@ -42,6 +44,8 @@ services:
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
     links:
       - redis
+    volumes:
+      - datavolume:/data
 
   # nginx:
   #   image: "nginx:1.15.6"
@@ -51,3 +55,7 @@ services:
   #     - "80:80"
   #   depends_on:
   #     - cub_sign_in_app
+
+
+volumes:
+  datavolume: {}

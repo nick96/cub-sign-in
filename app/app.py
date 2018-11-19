@@ -6,7 +6,7 @@ from celery_tasks import (
     add_sign_in,
     add_sign_out,
     make_celery,
-    # update_name_autocomplete,
+    update_name_autocomplete,
 )
 from flask import (
     Flask,
@@ -20,10 +20,7 @@ from flask import (
 )
 from flask_dance.contrib.google import google, make_google_blueprint
 from forms import SignInForm, SignOutForm
-from oauthlib.oauth2.rfc6749.errors import (
-    InvalidClientIdError,
-    TokenExpiredError,
-)
+from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, TokenExpiredError
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -36,7 +33,7 @@ celery.config_from_object(app.config)
 google_bp = make_google_blueprint(
     client_id=app.config["GOOGLE_CLIENT_ID"],
     client_secret=app.config["GOOGLE_CLIENT_SECRET"],
-    scope=["https://www.googleapis.com/auth/spreadsheets", "email", "profile"],
+    scope=["email", "profile"],
     offline=True,
 )
 app.register_blueprint(google_bp, url_prefix="/login")
@@ -94,6 +91,23 @@ def invite_required(handler):
     return f
 
 
+def get_autocomplete_data():
+    if is_invited(session.get("email", "")):
+        try:
+            with open(app.config["NAMES_FILE"]) as f:
+                return {name.strip(): None for name in f.readlines()}
+        except FileNotFoundError:
+            app.logger.info(
+                f"{app.config['NAMES_FILE']} not found, so"
+                + " kicking off the tak to populate it"
+            )
+            update_name_autocomplete.delay(
+                app.config["NAMES_FILE"],
+                app.config["SPREADSHEET_ID"],
+                [app.config["ROLL_SHEET"], app.config["NAMES_SHEET"]],
+            )
+
+
 @app.route("/")
 @google_auth_required
 def root():
@@ -111,6 +125,7 @@ def sign_in():
         form_url=url_for("sign_in"),
         form=form,
         is_invited=is_invited(session.get("email")),
+        autocomplete_data=get_autocomplete_data(),
     )
 
 
@@ -123,6 +138,7 @@ def sign_out():
         is_sign_in=False,
         form=form,
         is_invited=is_invited(session.get("email")),
+        autocomplete_data=get_autocomplete_data(),
     )
 
 

@@ -153,6 +153,14 @@
      return true;
  }
 
+ const ac = document.querySelector('.autocomplete');
+
+ {% if is_invited %}
+ M.Autocomplete.init(ac, {
+     data: {{ autocomplete_data | tojson | safe }}
+ });
+ {% endif %}
+
 </script>
 
 {% endblock %}
