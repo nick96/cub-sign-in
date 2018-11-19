@@ -17,19 +17,24 @@ child's name, parent's name and parent's signature.
 As writing to Google Sheets is an expensive operation, when a form is
 submitted, a task is added to the `Celery
 <http://www.celeryproject.org/>`_ task queue which is backed by
-`RabbitMQ <https://www.rabbitmq.com/>`_.
+`redis <https://redis.io/>`_.
 
-To configure this application use a `.env` file which contains the
-required environment variables. That is:
+The environment variables are configured through the :code:`.dev.env` and
+:code:`.env` files. :code:`.dev.env` is intended for development use only and is
+not secure for production (mainly in that it requires allows http
+calls for OAuth authentication). The :code:`docker-compose.override.yml`
+file uses :code:`.dev.env`. For production you will have to use
 
-- `FLASK_APP`: Name of the file containing the application
-- `CELERY_BROKER`: URL of the broker to use for Celery
-- `GOOGLE_SHEETS_ID`: Account ID for use with Google Sheets
-- `GOOGLE_SHEETS_SECRET`: Secret key for use with Google Sheets
-- `USERS_FILE`: File to read user's emails from (this is intended as a poor
-  man's invite system)
+.. code:: bash
 
-To run the application you can simply use `docker-compose up .`. This
-will build and run the different docker image's required to run the
-application.
+    docker-compose -f docker-compose.yml build && docker-compose -f docker-compose.yml up
+
+To run the application you can simply run
+
+.. code:: bash
+
+    docker-compose build && docker-compose up
+
+This will build and run the different docker image's required to run
+the application.
 
