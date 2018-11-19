@@ -19,7 +19,7 @@ services:
       - ./app/.dev.env
     environment:
       - CUB_SIGN_IN_CONFIG=.dev.env
-      - OAUTHLIB_INSECURE_TRANSPORT=
+      - OAUTHLIB_INSECURE_TRANSPORT=1
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
 
   celery:

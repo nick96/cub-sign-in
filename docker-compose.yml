@@ -47,14 +47,14 @@ services:
     volumes:
       - datavolume:/data
 
-  # nginx:
-  #   image: "nginx:1.15.6"
-  #   restart: always
-  #   build: ./nginx
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - cub_sign_in_app
+  nginx:
+    image: "nginx:1.15.6"
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - cub_sign_in_app
 
 
 volumes:

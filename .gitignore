@@ -3,3 +3,5 @@ Users
 app/Pipfile.lock
 .venv
 __pycache__
+/app/cub-sign-in.json
+/app/invited.txt

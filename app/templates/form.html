@@ -153,12 +153,24 @@
      return true;
  }
 
- const ac = document.querySelector('.autocomplete');
 
  {% if is_invited %}
+
+ const ac = document.querySelectorAll('.autocomplete');
  M.Autocomplete.init(ac, {
      data: {{ autocomplete_data | tojson | safe }}
  });
+
+ function showAutocomplete(elem) {
+     elem.open();
+ }
+
+ for (var i = 0; i < ac.length; i++) {
+     ac[i].addEventListener("click", function() {
+	 showAutocomplete(ac[i]);
+     })
+ }
+
  {% endif %}
 
 </script>

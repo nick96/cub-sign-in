@@ -54,7 +54,24 @@ def google_auth_required(handler):
     return f
 
 
-def is_invited(email):
+def is_invited(email=None):
+    app.logger.debug(f"Checking if {email} is on the invite list")
+    if not email:
+        app.logger.debug("User's email not given, getting from google")
+        try:
+            resp = google.get("oauth2/v2/userinfo")
+        except (TokenExpiredError, InvalidClientIdError):
+            app.logger.info("Token expired, redirecting user to page to renewal")
+            return redirect(url_for("google.login"))
+        if not resp.ok:
+            app.logger.error(f"Failed to get {resp.url}: {resp.text}")
+            abort(500)
+        app.logger.info(f"Got {email} from user info request, session session value")
+        email = resp.json()["email"]
+        session["email"] = email
+    else:
+        app.logger.info("Email already set in session store")
+    app.logger.debug(f"Checking if user with email {email} is invited")
     with open(app.config["INVITE_FILE"], "r") as f:
         invitees = [invitee.strip() for invitee in f.readlines()]
         return email in invitees
@@ -65,22 +82,6 @@ def invite_required(handler):
     def f(*args, **kwargs):
         app.logger.debug("Checking if user if invited")
         email = session.get("email")
-        if not email:
-            app.logger.debug("User's email not in session, getting from google")
-            try:
-                resp = google.get("oauth2/v2/userinfo")
-            except (TokenExpiredError, InvalidClientIdError):
-                app.logger.info("Token expired, redirecting user to page to renewal")
-                return redirect(url_for("google.login"))
-            if not resp.ok:
-                app.logger.error(f"Failed to get {resp.url}: {resp.text}")
-                abort(500)
-            app.logger.info("Got {email} from user info request, session session value")
-            email = resp.json()["email"]
-            session["email"] = email
-        else:
-            app.logger.info("Email already set in session store")
-        app.logger.debug(f"Checking if user with email {email} is invited")
         if not is_invited(email):
             app.logger.info(
                 f"User with email {email} attempted login but are not invited"
