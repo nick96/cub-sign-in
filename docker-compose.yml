@@ -1,4 +1,4 @@
-version: '3'
+version: "3.2"
 
 services:
   cub_sign_in_app:
@@ -6,12 +6,48 @@ services:
     build: ./app
     ports:
       - "8000:8000"
-    command: gunicorn -w 1 -b :8000 app:app
+    command: >
+      gunicorn
+          --workers 1
+          --access-logfile -
+          --log-level warn
+          --bind :8000
+          app:app
+    env_file: ./app/.env
+    environment:
+      - CUB_SIGN_IN_CONFIG=.env
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1
+    links:
+      - redis
+      - celery
 
-  nginx:
+  redis:
     restart: always
-    build: ./nginx
+    image: "redis"
+    # command: "redis-server"
     ports:
-      - "80:80"
-    depends_on:
-      - cub_sign_in_app
+      - "6379:6379"
+
+  celery:
+    restart: always
+    build: ./app
+    user: nobody
+    command: >
+      celery worker
+          --loglevel=WARN
+          --app app.celery
+    env_file: ./app/.env
+    environment:
+      - CUB_SIGN_IN_CONFIG=.env
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1
+    links:
+      - redis
+
+  # nginx:
+  #   image: "nginx:1.15.6"
+  #   restart: always
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - cub_sign_in_app
