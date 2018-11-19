@@ -1,0 +1,55 @@
+<div class="row">
+    <form action="{{ url_for('log_sign_in')}}" method="POST" class="form col s12" id="sign_in_form">
+	{{ form.hidden_tag() }}
+	<div class="row">
+	    <div class="input-field col s12 m12">
+		{{ form.cub_name.label }} {{ form.cub_name(size = 20)}}
+	    </div>
+	</div>
+
+	<div class="row valign-wrapper">
+	    <div class="left-align">
+		<div class="col s2 m12">
+		    <div class="card-panel z-depth-0 transparent">
+			<div class="row">
+			    <caption>Cub Sign In</caption>
+			</div>
+			<div class="row">
+			    <canvas id="cub_signature_pad"
+					class="signature-pad"
+					width="300"
+					height="300"></canvas>
+			</div>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="left-align">
+		<div class="col s12 m12">
+		    <div class="card-panel z-depth-0 transparent">
+			<div class="row">
+			    <caption>Parent Sign In</caption>
+			</div>
+			<div class="row">
+			    <canvas id="parent_signature_pad"
+				    class="signature-pad"
+				    width="300"
+				    height="300"></canvas>
+			</div>
+		    </div>
+		</div>
+	    </div>
+	</div>
+
+	<div class="row">
+
+	    <div class="input-field col s12 center-align ">
+		<button class="btn-large waves-effect waves-light"
+			name="action"
+			onClick="return onSubmitSignInRecord()">
+		    Submit <i class="material-icons right">send</i>
+		</button>
+	    </div>
+	</div>
+    </form>
+</div>

@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ super () }} - {% if is_sign_in %} Sign in {% else %} Sign out {% endif %}
+{% endblock %}
+
+{% block header %}
+{{ super () }}
+<div class="row">
+    <div class="col s6 left-align">
+	<h1>{% if is_sign_in %} Sign In {% else %} Sign Out {% endif %}</h1>
+    </div>
+
+    <div class="col s6 right-align">
+	<div class="switch">
+	    <label>
+		Sign In
+		<input type="checkbox" id="switch" onClick="toggleAction()">
+		<span class="lever"></span>
+		Sign Out
+	    </label>
+	</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if is_sign_in %}
+{% include "sign_in_form.html" %}
+{% else %}
+{% include "sign_out_form.html" %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script src="{{ url_for('static', filename='js/node_modules/signature_pad/dist/signature_pad.umd.min.js') }}"></script>
+
+<script type="text/javascript">
+
+ M.AutoInit();
+
+ {% with messages = get_flashed_messages() %}
+ {% if messages %}
+ {% for message in messages %}
+ M.toast({html: "{{ message }}", classes: "red lighten-1"});
+ {% endfor %}
+ {% endif %}
+ {% endwith %}
+
+ var switch_ = document.querySelector("#switch");
+ {% if is_sign_in %}
+ switch_.checked = false;
+ {% else %}
+ switch_.checked = true;
+ {% endif %}
+
+ function toggleAction() {
+     if (switch_.checked) {
+	 window.location.href = "{{ url_for('sign_out') }}";
+     } else {
+	 window.location.href = "{{ url_for('sign_in') }}";
+     }
+ }
+
+ // Initialise the canvas fields to accept signatures
+ var cubSigCanvas = document.querySelector('#cub_signature_pad');
+ var parentSigCanvas = document.querySelector('#parent_signature_pad');
+
+ if (cubSigCanvas != null) {
+     var cubSigPad = new SignaturePad(cubSigCanvas);
+ }
+ var parentSigPad = new SignaturePad(parentSigCanvas);
+
+ function addTimestamp() {
+     let timeField = document.querySelector('#time');
+     let dateField = document.querySelector("#date")
+     let d = new Date();
+     let date = d.getFullYear() + "-"
+	      + String(d.getMonth() + 1).padStart(2, "0") + "-"
+	      + String(d.getDay()).padStart(2, "0");
+
+     let time = String(d.getHours()).padStart(2, "0") + ":"
+	      + String(d.getMinutes()).padStart(2, "0") + ":"
+	      + String(d.getSeconds()).padStart(2, "0");
+     let timezone = -(d.getTimezoneOffset() / 60);
+     timezone = timezone >= 0 ? "+" + timezone : String(timezone);
+     dateField.value = date
+     timeField.value = time + " " + timezone
+ }
+
+ function addSignatures() {
+     if (typeof cubSigPad != 'undefined') {
+	 document.getElementById('cub_signature').value = cubSigPad.toDataURL();
+     }
+
+     if (typeof parentSigPad != 'undefined') {
+	 document.getElementById('parent_signature').value = parentSigPad.toDataURL();
+     }
+ }
+
+ function fillHidden() {
+     addTimestamp();
+     addSignatures();
+ }
+
+ function validateCubSigPad() {
+     if (cubSigPad.isEmpty()) {
+	 M.toast({html: "Cub signature is required", classes: "red lighten-1"});
+	 return false;
+     }
+     return true;
+ }
+
+
+ function validateParentSigPad() {
+     if (parentSigPad.isEmpty()) {
+	 M.toast({html: "Parent signature is required", classes: "red lighten-1"});
+	 return false;
+     }
+     return true;
+ }
+
+ function validateCubName() {
+     if (document.querySelector("#cub_name").value.trim() === "") {
+	 M.toast({html: "Cub's name is required", classes: "red lighten-1"});
+	 return false;
+     }
+     return true;
+ }
+
+ function onSubmitSignInRecord() {
+     let validCubName = validateCubName();
+     let validCubSig = validateCubSigPad();
+     let validParentSig = validateParentSigPad();
+     if (!(validCubName && validCubSig && validParentSig)) {
+	 return false;
+     }
+
+     fillHidden();
+     return true;
+ }
+
+ function onSubmitSignOutRecord() {
+     let validCubName = validateCubName();
+     let validParentSig = validateParentSigPad();
+     if (!(validCubName && validParentSig)) {
+	 return false;
+     }
+     fillHidden();
+     return true;
+ }
+
+</script>
+
+{% endblock %}

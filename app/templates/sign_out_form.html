@@ -1,0 +1,36 @@
+<form action="{{ url_for('log_sign_out' )}}" method="POST"
+      class="form col s12"
+      id="sign_out_form">
+    {{ form.hidden_tag() }}
+
+    <div class="row">
+	<div class="input-field col s12 m12">
+	    {{ form.cub_name.label }} {{ form.cub_name(size = 20, required=False) }}
+	</div>
+    </div>
+
+    <div class="row">
+	<div class="col s12 m12 center-align">
+	    <div class="card-panel z-depth-0 transparent">
+		<div class="row">
+		    <caption>Parent Sign Out</caption>
+		</div>
+		<div class="row">
+		    <canvas id="parent_signature_pad" class="signature-pad"
+				width="500"
+			    height="300"></canvas>
+		</div>
+	    </div>
+	</div>
+    </div>
+
+    <div class="row">
+	<div class="input-field col s12 center-align">
+	    <button class="btn-large wave-effect waves-light"
+		    name="action"
+		    onClick="return onSubmitSignOutRecord()">
+		Submit <i class="material-icons right">send</i>
+	    </button>
+	</div>
+    </div>
+</form>

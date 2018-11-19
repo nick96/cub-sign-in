@@ -1,0 +1,35 @@
+<!DOCTYLE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <title>{% block title %}Cub Sign In{% endblock %}</title>
+    {% endblock %}
+
+    {% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css')}}">
+    <link rel="stylesheet" type="text/css" href=" {{ url_for('static', filename='js/node_modules/materialize-css/dist/css/materialize.min.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300"; rel="stylesheet" type="text/css">
+
+    {% endblock %}
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="header">
+	{% block header %}
+	{% endblock %}
+      </div>
+      <main>
+	{% block content %}
+	{% endblock %}
+      </main>
+
+      <footer>
+	{% block footer %}
+	{% endblock %}
+      </footer>
+
+      {% block scripts %}
+      <script src="{{ url_for('static', filename='js/node_modules/materialize-css/dist/js/materialize.min.js') }}"></script>
+      {% endblock %}
