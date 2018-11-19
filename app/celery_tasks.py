@@ -43,6 +43,8 @@ def make_celery(app, broker):
 
     celery.Task = ContextTask
 
+    celery.config_from_object(app.config)
+
     @celeryd_after_setup.connect
     def setup_name_autocomplete(sender, instance, **kwargs):
         # Run the tasks now so we have some autocomplete
