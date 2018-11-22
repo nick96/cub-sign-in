@@ -20,20 +20,25 @@ services:
     links:
       - redis
       - celery
+    networks:
+      - proxy
     volumes:
       - datavolume:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=flask"
+      - "traefik.frontend.rule=${TRAEFIK_FRONTEND_RULE}"
+      - "traefik.domain=${TRAEFIK_DOMAIN}"
 
   redis:
     restart: always
     image: "redis"
-    # command: "redis-server"
     ports:
       - "6379:6379"
 
   celery:
     restart: always
     build: ./app
-    # user: nobody
     command: >
       celery worker
           --loglevel=WARN
@@ -47,15 +52,22 @@ services:
     volumes:
       - datavolume:/data
 
-  nginx:
-    image: "nginx:1.15.6"
-    restart: always
-    build: ./nginx
+  traefik:
+    image: traefik:1.7.4
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - cub_sign_in_app
+      - "8080:8080"
+    networks:
+      - proxy
+
 
 volumes:
   datavolume:
+
+networks:
+  proxy:
+    external: true
