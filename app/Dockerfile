@@ -12,8 +12,8 @@ RUN apt-get update
 RUN apt-get install -y nodejs
 
 
-COPY Pipfile /app
-COPY Pipfile.lock /app
+COPY ./app/Pipfile /app
+COPY ./app/Pipfile.lock /app
 
 # --system: Install packages to system's python
 # --deploy: Make sure Pipfile.lock is in-sync with Pipfile
@@ -21,6 +21,8 @@ COPY Pipfile.lock /app
 RUN pipenv install --system --deploy --ignore-pipfile
 
 
-COPY . /app
-RUN npm --prefix static/js install
+COPY ./app /app
+COPY ./prod.cfg /app/prod.cfg
+RUN npm --prefix app/static/js install
 
+ENTRYPOINT gunicorn --bind 0.0.0.0:8000 --loglevel debug app/app:app
