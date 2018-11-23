@@ -2,6 +2,7 @@ import os
 from collections import namedtuple
 from time import sleep
 from typing import List
+import types
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -31,24 +32,25 @@ EMAIL_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.profile"
 PROFILE_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.email"
 
 
-def config_from_pyfile(conf, file_name, silent=False):
+def config_from_pyfile(file_name):
     """Same as flask's from_pyfile but for Celery.
 
     From
     https://stackoverflow.com/questions/46710214/how-to-use-config-from-envvar-in-celery
 
     """
-    pyconf = {}
-    with open(file_name) as fp:
-        exec(compile(fp.read(), file_name, "exec"), {}, d)
-    conf.config_from_object(pyconf)
-    return conf
+    d = types.ModuleType("config")
+    d.__file__ = file_name
+    with open(file_name, mode="rb") as fp:
+        exec(compile(fp.read(), file_name, "exec"), d.__dict__)
+    return d
 
 
 def make_celery(name, broker):
     """Create context tasks in Celery."""
-    celery = Celery(name, broker=broker)
-    celery.conf = config_from_pyfile(self.conf, os.getenv("CUB_SIGN_IN_CONFIG"))
+    cfg = config_from_pyfile(os.getenv("CUB_SIGN_IN_CONFIG"))
+    celery = Celery(name, broker=d.CELERY_BROKER_URL)
+    celery.config_from_object(cfg)
 
     class ContextTask(celery.Task):
         abstract = True
@@ -80,7 +82,7 @@ def make_celery(name, broker):
     return celery
 
 
-celery = make_celery("tasks", os.getenv("CELERY_BROKER_URL"))
+celery = make_celery("tasks")
 
 
 def make_sheets_client(service_creds_file):
