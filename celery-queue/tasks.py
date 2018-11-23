@@ -1,17 +1,18 @@
+import os
 from collections import namedtuple
+from time import sleep
 from typing import List
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from uritemplate import URITemplate
 
-from celery import Celery, shared_task, states
+from celery import Celery, states
 from celery.exceptions import Ignore
 from celery.schedules import crontab
 from celery.signals import celeryd_after_setup
 from celery.utils.log import get_task_logger
 from typing_extensions import Final
-from time import sleep
 
 logger = get_task_logger(__name__)
 
@@ -30,20 +31,18 @@ EMAIL_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.profile"
 PROFILE_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.email"
 
 
-def make_celery(app, broker):
+def make_celery(name, broker):
     """Create context tasks in Celery."""
-    celery = Celery(app.import_name, broker=broker)
+    celery = Celery(name, broker=broker)
 
     class ContextTask(celery.Task):
         abstract = True
 
         def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return self.run(self, *args, **kwargs)
+            return self.run(self, *args, **kwargs)
 
     celery.Task = ContextTask
-
-    celery.config_from_object(app.config)
+    celery.config_from_envvar("CUB_SIGN_IN_CONFIG")
 
     @celeryd_after_setup.connect
     def setup_name_autocomplete(sender, instance, **kwargs):
@@ -67,6 +66,9 @@ def make_celery(app, broker):
     return celery
 
 
+celery = make_celery("tasks", os.getenv("CELERY_BROKER_URL"))
+
+
 def make_sheets_client(service_creds_file):
     creds = service_account.Credentials.from_service_account_file(
         service_creds_file,
@@ -77,7 +79,9 @@ def make_sheets_client(service_creds_file):
     return build("sheets", "v4", credentials=creds).spreadsheets()
 
 
-@shared_task
+celery.task(name="tasks.update_name_autocomplete")
+
+
 def update_name_autocomplete(
     self, names_file: str = "", spreadsheet_id: str = "", sheet_names: List[str] = []
 ) -> None:
@@ -99,7 +103,7 @@ def update_name_autocomplete(
     while retry <= 10:
         try:
             with open(names_file, "w") as f:
-                f.write('\n'.join(names))
+                f.write("\n".join(names))
             break
         except PermissionError:
             retry += 1
@@ -107,7 +111,7 @@ def update_name_autocomplete(
             sleep(5)
 
 
-@shared_task
+@celery.task(name="tasks.add_sign_in")
 def add_sign_in(
     self,
     cub_name: str = "",
@@ -135,7 +139,7 @@ def add_sign_in(
         raise Ignore()
 
 
-@shared_task
+@celery.task(name="tasks.add_sign_out")
 def add_sign_out(
     self,
     cub_name: str = "",

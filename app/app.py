@@ -1,14 +1,7 @@
 import logging
-import os
 from functools import wraps
-from werkzeug.contrib.fixers import ProxyFix
 
-from celery_tasks import (
-    add_sign_in,
-    add_sign_out,
-    make_celery,
-    update_name_autocomplete,
-)
+from celery import Celery
 from flask import (
     Flask,
     abort,
@@ -22,6 +15,7 @@ from flask import (
 from flask_dance.contrib.google import google, make_google_blueprint
 from forms import SignInForm, SignOutForm
 from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, TokenExpiredError
+from werkzeug.contrib.fixers import ProxyFix
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -34,7 +28,7 @@ def create_app():
 
 
 app = create_app()
-celery = make_celery(app, app.config["CELERY_BROKER_URL"])
+celery = Celery("tasks", broker=app.config["CELERY_BROKER_URL"])
 
 google_bp = make_google_blueprint(
     client_id=app.config["GOOGLE_CLIENT_ID"],
@@ -43,6 +37,7 @@ google_bp = make_google_blueprint(
     offline=True,
 )
 app.register_blueprint(google_bp, url_prefix="/login")
+
 
 def google_auth_required(handler):
     @wraps(handler)
@@ -107,10 +102,14 @@ def get_autocomplete_data():
                 f"{app.config['NAMES_FILE']} not found, so"
                 + " kicking off the tak to populate it"
             )
-            update_name_autocomplete.delay(
-                app.config["NAMES_FILE"],
-                app.config["SPREADSHEET_ID"],
-                [app.config["ROLL_SHEET"], app.config["NAMES_SHEET"]],
+            celery.send_task(
+                "tasks.update_name_autocomplete",
+                args=[
+                    app.config["NAMES_FILE"],
+                    app.config["SPREADSHEET_ID"],
+                    [app.config["ROLL_SHEET"], app.config["NAMES_SHEET"]],
+                ],
+                kwargs={},
             )
 
 
@@ -119,6 +118,7 @@ def get_autocomplete_data():
 def root():
     app.logger.debug(f"User is authorised, redirecting to {url_for('sign_in')}")
     return redirect(url_for("sign_in"))
+
 
 @app.route("/privacy")
 def privacy():
@@ -165,14 +165,18 @@ def log_sign_in():
                 flash(f"Error in the {getattr(form, field).label.text} field: {error}")
         return redirect(url_for("sign_in"))
 
-    add_sign_in.delay(
-        form.cub_name.data,
-        form.cub_signature.data,
-        form.parent_signature.data,
-        form.time.data,
-        form.date.data,
-        app.config["SPREADSHEET_ID"],
-        app.config["ROLL_SHEET"],
+    celery.send_task(
+        "tasks.add_sign_in",
+        args=[
+            form.cub_name.data,
+            form.cub_signature.data,
+            form.parent_signature.data,
+            form.time.data,
+            form.date.data,
+            app.config["SPREADSHEET_ID"],
+            app.config["ROLL_SHEET"],
+        ],
+        kwargs={},
     )
     return redirect(url_for("sign_in"))
 
@@ -191,13 +195,17 @@ def log_sign_out():
         return redirect(url_for("sign_out"))
 
     app.logger.debug("Sending sign out task")
-    add_sign_out.delay(
-        form.cub_name.data,
-        form.parent_signature.data,
-        form.time.data,
-        form.date.data,
-        app.config["SPREADSHEET_ID"],
-        app.config["ROLL_SHEET"],
+    celery.send_task(
+        "tasks.add_sign_out",
+        args=[
+            form.cub_name.data,
+            form.parent_signature.data,
+            form.time.data,
+            form.date.data,
+            app.config["SPREADSHEET_ID"],
+            app.config["ROLL_SHEET"],
+        ],
+        kwargs={},
     )
     return redirect(url_for("sign_out"))
 
