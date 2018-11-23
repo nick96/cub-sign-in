@@ -15,7 +15,7 @@ services:
           app:app
     env_file: ./app/.env
     environment:
-      - CUB_SIGN_IN_CONFIG=.env
+      - CUB_SIGN_IN_CONFIG=${PWD}/prod.cfg
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
     links:
       - redis
@@ -45,7 +45,7 @@ services:
           --app app.celery
     env_file: ./app/.env
     environment:
-      - CUB_SIGN_IN_CONFIG=.env
+      - CUB_SIGN_IN_CONFIG=${PWD}/prod.cfg
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
     links:
       - redis
