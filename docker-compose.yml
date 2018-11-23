@@ -3,7 +3,9 @@ version: "3.2"
 services:
   cub_sign_in_app:
     restart: always
-    build: ./app
+    build:
+      context: ./
+      dockerfile: ./app/Dockerfile
     ports:
       - "8000:8000"
     command: >
@@ -13,9 +15,8 @@ services:
           --log-level debug
           --bind :8000
           app:app
-    env_file: ./app/.env
     environment:
-      - CUB_SIGN_IN_CONFIG=${PWD}/prod.cfg
+      - CUB_SIGN_IN_CONFIG=prod.cfg
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
     links:
       - redis
@@ -32,20 +33,21 @@ services:
 
   redis:
     restart: always
-    image: "redis"
+    image: redis:5.0.1
     ports:
       - "6379:6379"
 
   celery:
     restart: always
-    build: ./app
+    build:
+      context: ./
+      dockerfile: ./celery-queue/Dockerfile
     command: >
       celery worker
           --loglevel=DEBUG
           --app app.celery
-    env_file: ./app/.env
     environment:
-      - CUB_SIGN_IN_CONFIG=${PWD}/prod.cfg
+      - CUB_SIGN_IN_CONFIG=prod.cfg
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1
     links:
       - redis
