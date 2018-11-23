@@ -10,7 +10,7 @@ services:
       gunicorn
           --workers 1
           --access-logfile -
-          --log-level warn
+          --log-level debug
           --bind :8000
           app:app
     env_file: ./app/.env
@@ -41,7 +41,7 @@ services:
     build: ./app
     command: >
       celery worker
-          --loglevel=WARN
+          --loglevel=DEBUG
           --app app.celery
     env_file: ./app/.env
     environment:
