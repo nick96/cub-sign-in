@@ -20,26 +20,25 @@ services:
     links:
       - redis
       - celery
+    networks:
+      - proxy
     volumes:
       - datavolume:/data
     labels:
-      - traefik.enable=true
-      - traefik.backend=flask
-      - traefik.frontend.rule=${TRAEFIK_FRONTEND_RULE}
+      - "traefik.enable=true"
+      - "traefik.backend=flask"
+      - "traefik.frontend.rule=${TRAEFIK_FRONTEND_RULE}"
+      - "traefik.domain=${TRAEFIK_DOMAIN}"
 
   redis:
     restart: always
     image: "redis"
-    # command: "redis-server"
     ports:
       - "6379:6379"
 
   celery:
     restart: always
     build: ./app
-    # Celery complains about being root but as 'nobody' we cannot
-    # write files.
-    # user: nobody
     command: >
       celery worker
           --loglevel=WARN
@@ -53,23 +52,22 @@ services:
     volumes:
       - datavolume:/data
 
-  traefix:
-    image: traefik:1.5.4
-    restart: always
-    ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
-        #    networks:
-        #      - web
+  traefik:
+    image: traefik:1.7.4
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
-      - ./traefik/acme:/etc/traefik/acme.json
-    
+      - ./traefik:/etc/traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    networks:
+      - proxy
+
+
 volumes:
   datavolume:
 
-          #networks:
-          #  web:
-          #    external: true
+networks:
+  proxy:
+    external: true
