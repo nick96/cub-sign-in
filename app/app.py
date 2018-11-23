@@ -118,6 +118,10 @@ def root():
     app.logger.debug(f"User is authorised, redirecting to {url_for('sign_in')}")
     return redirect(url_for("sign_in"))
 
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
 
 @app.route("/sign-in", methods=["GET"])
 @google_auth_required
