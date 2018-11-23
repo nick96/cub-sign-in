@@ -10,7 +10,6 @@ tar --exclude "*/node_modules" \
 	build.sh \
   	docker-compose.yml \
 	traefik \
-	app/.env \
-	app/*
-	
-
+	app/* \
+	celery-queue/* \
+	prod.cfg
