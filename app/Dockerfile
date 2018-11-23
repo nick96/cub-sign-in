@@ -22,7 +22,7 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 
 COPY ./app /app
-COPY ./prod.cfg /app/prod.cfg
+COPY ./${CUB_SIGN_IN_CONFIG} /app/${CUB_SIGN_IN_CONFIG}
 RUN npm --prefix app/static/js install
 
 ENTRYPOINT gunicorn --bind 0.0.0.0:8000 --loglevel debug app/app:app

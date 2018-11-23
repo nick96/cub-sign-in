@@ -13,6 +13,6 @@ COPY ./celery-queue/Pipfile.lock /queue
 RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY ./celery-queue/tasks.py /queue
-COPY ./prod.cfg /queue/prod.cfg
+COPY ./${CUB_SIGN_IN_CONFIG} /queue/${CUB_SIGN_IN_CONFIG}
 
 ENTRYPOINT celery -A tasks worker --loglevel=info
