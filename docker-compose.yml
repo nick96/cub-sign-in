@@ -12,7 +12,7 @@ services:
       gunicorn
           --workers 1
           --access-logfile -
-          --log-level debug
+          --log-level info
           --bind :8000
           app:app
     environment:
@@ -44,7 +44,7 @@ services:
       dockerfile: ./celery-queue/Dockerfile
     command: >
       celery worker
-          --loglevel=DEBUG
+          --loglevel=WARN
           --app app.celery
     environment:
       - CUB_SIGN_IN_CONFIG=prod.cfg
