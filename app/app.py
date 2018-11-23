@@ -1,6 +1,7 @@
 import logging
 import os
 from functools import wraps
+from werkzeug.contrib.fixers import ProxyFix
 
 from celery_tasks import (
     add_sign_in,
@@ -28,6 +29,7 @@ logging.basicConfig(level=logging.DEBUG)
 def create_app():
     app = Flask(__name__)
     app.config.from_envvar("CUB_SIGN_IN_CONFIG")
+    app.wsgi_app = ProxyFix(app.wsgi_app)
     return app
 
 
