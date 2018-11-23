@@ -16,7 +16,7 @@ address = ":8080"
 email = "nicholas.spain96@gmail.com"
 storage = "/etc/traefik/acme/acme.json"
 entryPoint = "https"
-caServer = "https://acme-staging.api.letsencrypt.org/directory"
+caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
   [acme.dnsChallenge]
   provider = "digitalocean"
   delayBeforeCheck = 0
