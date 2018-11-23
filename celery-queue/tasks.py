@@ -30,10 +30,24 @@ SHEETS_SCOPE: Final = "https://www.googleapis.com/auth/spreadsheets"
 EMAIL_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.profile"
 PROFILE_SCOPE: Final = "https://www.googleapis.com/auth/userinfo.email"
 
+def config_from_pyfile(self, file_name, silent=False):
+    """Same as flask's from_pyfile but for Celery.
+
+    From
+    https://stackoverflow.com/questions/46710214/how-to-use-config-from-envvar-in-celery
+
+    """
+    conf = {}
+    with open(file_name) as fp:
+        exec(compile(fp.read(), file_name, "exec"), {}, d)
+    self.config_from_object(conf)
+
 
 def make_celery(name, broker):
     """Create context tasks in Celery."""
     celery = Celery(name, broker=broker)
+    celery.config_from_pyfile = config_from_pyfile
+    celery = celery.config_from_pyfile(os.getenv("CUB_SIGN_IN_CONFIG"))
 
     class ContextTask(celery.Task):
         abstract = True
@@ -42,7 +56,6 @@ def make_celery(name, broker):
             return self.run(self, *args, **kwargs)
 
     celery.Task = ContextTask
-    celery.config_from_envvar("CUB_SIGN_IN_CONFIG")
 
     @celeryd_after_setup.connect
     def setup_name_autocomplete(sender, instance, **kwargs):
@@ -79,9 +92,7 @@ def make_sheets_client(service_creds_file):
     return build("sheets", "v4", credentials=creds).spreadsheets()
 
 
-celery.task(name="tasks.update_name_autocomplete")
-
-
+@celery.task(name="tasks.update_name_autocomplete")
 def update_name_autocomplete(
     self, names_file: str = "", spreadsheet_id: str = "", sheet_names: List[str] = []
 ) -> None:
