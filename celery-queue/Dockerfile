@@ -1,4 +1,4 @@
-from python:3.7
+from python:3.7-stretch
 
 WORKDIR /queue
 
@@ -14,5 +14,3 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY ./celery-queue/tasks.py /queue
 COPY ./${CUB_SIGN_IN_CONFIG} /queue/${CUB_SIGN_IN_CONFIG}
-
-ENTRYPOINT celery -A tasks worker --loglevel=info

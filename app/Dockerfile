@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7-stretch
 
 WORKDIR /app
 
@@ -24,5 +24,3 @@ RUN pipenv install --system --deploy --ignore-pipfile
 COPY ./app /app
 COPY ./${CUB_SIGN_IN_CONFIG} /app/${CUB_SIGN_IN_CONFIG}
 RUN npm --prefix app/static/js install
-
-ENTRYPOINT gunicorn --bind 0.0.0.0:8000 --loglevel debug app/app:app
