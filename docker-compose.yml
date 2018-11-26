@@ -1,7 +1,7 @@
 version: "3.2"
 
 services:
-  cub_sign_in_app:
+  flask:
     restart: always
     build:
       context: ./
@@ -56,23 +56,6 @@ services:
       - datavolume:/data
     networks:
       - tasks
-
-  flower:
-    restart: always
-    build:
-      context: ./
-      dockerfile: ./celery-queue/Dockerfile
-    ports:
-      - "5555:5555"
-    depends_on:
-      - celery
-    environment:
-      - CUB_SIGN_IN_CONFIG=prod.cfg
-      - OAUTHLIB_RELAX_TOKEN_SCOPE=1
-      - C_FORCE_ROOT=true
-    networks:
-      - tasks
-    command: celery --loglevel=WARN -A tasks flower
 
   traefik:
     restart: always

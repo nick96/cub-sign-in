@@ -1,12 +1,11 @@
 logLevel = "INFO"
 defaultEntryPoints = ["https"]
 
-[file]
-
-[api]
-address = ":8080"
-
 [entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
   [entryPoints.https]
   address = ":443"
     [entryPoints.https.tls]
@@ -22,10 +21,10 @@ entryPoint = "https"
   delayBeforeCheck = 0
 
   [[acme.domains]]
-  main = "*.nspain.me"
-  sans = ["nspain.me"]
+  main = "nspain.me"
+  sans = ["cubs.nspain.me"]
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "nspain.me"
+domain = "cubs.nspain.me"
 exposedbydefault = false
