@@ -12,5 +12,6 @@ COPY ./celery-queue/Pipfile.lock /queue
 # --ignore-pipfile: Use Pipfile.lock for installing
 RUN pipenv install --system --deploy --ignore-pipfile
 
-COPY ./celery-queue/tasks.py /queue
+COPY ./celery-queue/cub-sign-in.json /queue/cub-sign-in.json
 COPY ./${CUB_SIGN_IN_CONFIG} /queue/${CUB_SIGN_IN_CONFIG}
+COPY ./celery-queue/tasks.py /queue

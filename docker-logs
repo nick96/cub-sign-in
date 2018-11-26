@@ -1,0 +1,10 @@
+# logrotate file for docker logs.
+/var/lib/docker/containers/*/*.log {
+  rotate 7
+  daily
+  compress
+  size=50M
+  missingok
+  delaycompress
+  copytruncate 
+}

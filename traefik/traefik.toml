@@ -2,7 +2,6 @@ logLevel = "INFO"
 defaultEntryPoints = ["https"]
 
 [file]
-watch = true
 
 [api]
 address = ":8080"
@@ -16,7 +15,8 @@ address = ":8080"
 email = "nicholas.spain96@gmail.com"
 storage = "/etc/traefik/acme/acme.json"
 entryPoint = "https"
-caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+# Defaults to prod ACME server
+# caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
   [acme.dnsChallenge]
   provider = "digitalocean"
   delayBeforeCheck = 0
@@ -28,5 +28,4 @@ caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
 [docker]
 endpoint = "unix:///var/run/docker.sock"
 domain = "nspain.me"
-watch = true
 exposedbydefault = false

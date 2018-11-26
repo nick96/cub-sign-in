@@ -1,0 +1,5 @@
+FROM python:3.7-stretch
+
+WORKDIR /app
+
+COPY ./${CUB_SIGN_IN_CONFIG} /app/${CUB_SIGN_IN_CONFIG}

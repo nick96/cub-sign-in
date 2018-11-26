@@ -10,6 +10,7 @@ google-api-python-client = "*"
 typing-extensions = "*"
 uritemplate = "*"
 redis = "==2.10.6"
+flower = "*"
 
 [dev-packages]
 

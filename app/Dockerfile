@@ -23,4 +23,4 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY ./app /app
 COPY ./${CUB_SIGN_IN_CONFIG} /app/${CUB_SIGN_IN_CONFIG}
-RUN npm --prefix app/static/js install
+RUN npm --prefix static/js install

@@ -1,0 +1,7 @@
+from python:3.7-stretch
+
+WORKDIR /queue
+
+RUN pip install pipenv
+
+COPY ./${CUB_SIGN_IN_CONFIG} /queue/${CUB_SIGN_IN_CONFIG}

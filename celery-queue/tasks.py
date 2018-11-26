@@ -46,10 +46,10 @@ def config_from_pyfile(file_name):
     return d
 
 
-def make_celery(name, broker):
+def make_celery(name):
     """Create context tasks in Celery."""
     cfg = config_from_pyfile(os.getenv("CUB_SIGN_IN_CONFIG"))
-    celery = Celery(name, broker=d.CELERY_BROKER_URL)
+    celery = Celery(name, broker=cfg.CELERY_BROKER_URL)
     celery.config_from_object(cfg)
 
     class ContextTask(celery.Task):
@@ -89,7 +89,6 @@ def make_sheets_client(service_creds_file):
     creds = service_account.Credentials.from_service_account_file(
         service_creds_file,
         scopes=["profile", "email", SHEETS_SCOPE],
-        # cache_discovery=False,
     )
     creds.with_scopes([SHEETS_SCOPE])
     return build("sheets", "v4", credentials=creds).spreadsheets()
@@ -109,20 +108,15 @@ def update_name_autocomplete(
             .get(spreadsheetId=spreadsheet_id, range=f"{sheet_name}!A2:A")
             .execute()
         )
-        for name in result["values"]:
-            names.append(name[0])
+        if result.get("values"):
+            for name in result["values"]:
+                names.append(name[0])
+        else:
+            logger.debug(f"No 'values' field in {result}")
     logger.debug(f"Found {len(names)} for autocomplete: {names}")
 
-    retry = 0
-    while retry <= 10:
-        try:
-            with open(names_file, "w") as f:
-                f.write("\n".join(names))
-            break
-        except PermissionError:
-            retry += 1
-            logger.debug(f"Permissions error accessing file, retry {retry}")
-            sleep(5)
+    with open(names_file, "w") as f:
+        f.write("\n".join(names))
 
 
 @celery.task(name="tasks.add_sign_in")

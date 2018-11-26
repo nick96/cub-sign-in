@@ -21,6 +21,7 @@ celery = {extras = ["redis"], version = "*"}
 google-auth = "*"
 typing-extensions = "*"
 flask-env = "*"
+responses = "*"
 
 [dev-packages]
 black = "*"

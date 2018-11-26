@@ -10,3 +10,6 @@ package-lock.json
 *.tar.gz
 *.cfg
 acme.json
+/celery-queue/cub-sign-in.json
+/celery-queue/requirements.txt
+/app/requirements.txt

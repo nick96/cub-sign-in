@@ -23,6 +23,7 @@ services:
       - celery
     networks:
       - proxy
+      - tasks
     volumes:
       - datavolume:/data
     labels:
@@ -36,6 +37,8 @@ services:
     image: redis:5.0.1-stretch
     ports:
       - "6379:6379"
+    networks:
+      - tasks
 
   celery:
     restart: always
@@ -51,8 +54,11 @@ services:
       - redis
     volumes:
       - datavolume:/data
+    networks:
+      - tasks
 
   flower:
+    restart: always
     build:
       context: ./
       dockerfile: ./celery-queue/Dockerfile
@@ -60,10 +66,18 @@ services:
       - "5555:5555"
     depends_on:
       - celery
-    command: celery -A tasks flower
+    environment:
+      - CUB_SIGN_IN_CONFIG=prod.cfg
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1
+      - C_FORCE_ROOT=true
+    networks:
+      - tasks
+    command: celery --loglevel=WARN -A tasks flower
 
   traefik:
-    image: traefik:1.7.4
+    restart: always
+    # Use latest for now because 1.7.4 gives an error 
+    image: traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik:/etc/traefik
@@ -76,10 +90,11 @@ services:
     networks:
       - proxy
 
-
 volumes:
   datavolume:
 
 networks:
   proxy:
-    external: true
+    driver: bridge
+  tasks:
+    driver: bridge

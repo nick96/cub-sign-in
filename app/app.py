@@ -12,6 +12,8 @@ from flask import (
     session,
     url_for,
 )
+from flask.cli import AppGroup
+import click
 from flask_dance.contrib.google import google, make_google_blueprint
 from forms import SignInForm, SignOutForm
 from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, TokenExpiredError
@@ -37,6 +39,11 @@ google_bp = make_google_blueprint(
     offline=True,
 )
 app.register_blueprint(google_bp, url_prefix="/login")
+
+@app.cli.command("test")
+def run_tests():
+    import app_test
+    app_test.run()
 
 
 def google_auth_required(handler):
@@ -111,6 +118,7 @@ def get_autocomplete_data():
                 ],
                 kwargs={},
             )
+            return {}
 
 
 @app.route("/")
