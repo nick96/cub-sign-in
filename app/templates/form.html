@@ -70,9 +70,9 @@
  var parentSigCanvas = document.querySelector('#parent_signature_pad');
 
  if (cubSigCanvas != null) {
-     var cubSigPad = new SignaturePad(cubSigCanvas);
+     var cubSigPad = new SignaturePad(cubSigCanvas, {backgroundColor: "rgb(255,255,255)"});
  }
- var parentSigPad = new SignaturePad(parentSigCanvas);
+ var parentSigPad = new SignaturePad(parentSigCanvas, {backgroundColor: "rgb(255,255,255)"});
 
  function addTimestamp() {
      let timeField = document.querySelector('#time');
