@@ -1,4 +1,4 @@
-logLevel = "DEBUG"
+logLevel = "INFO"
 defaultEntryPoints = ["https", "http"]
 
 [entryPoints]
@@ -8,6 +8,7 @@ defaultEntryPoints = ["https", "http"]
     entryPoint = "https"
   [entryPoints.https]
   address = ":443"
+  compress = true
     [entryPoints.https.tls]
 
 [acme]
