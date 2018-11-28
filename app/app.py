@@ -19,7 +19,7 @@ from forms import SignInForm, SignOutForm
 from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, TokenExpiredError
 from werkzeug.contrib.fixers import ProxyFix
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 
 def create_app():
